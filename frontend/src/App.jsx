@@ -10,38 +10,18 @@ const AGE_GROUPS = [
 ];
 
 // Header Component
-const AppHeader = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  
+const AppHeader = ({ onMenuClick }) => {
   return (
     <header className="app-header">
       <div className="header-left">
         <button 
           className="menu-button" 
-          onClick={() => document.querySelector('.sidebar').classList.toggle('open')}
+          onClick={onMenuClick}
           aria-label="Toggle menu"
         >
           ☰
         </button>
         <h1 className="app-title">Client Dashboard</h1>
-      </div>
-      
-      <div className="header-center">
-        <div className="search-container">
-          <input
-            type="text"
-            placeholder="Search clients..."
-            className="search-input"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <span className="search-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M21 21L16.65 16.65" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </span>
-        </div>
       </div>
       
       <div className="header-right">
@@ -183,10 +163,24 @@ function App() {
     return <div className="loading">Loading...</div>;
   }
 
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const closeSidebar = () => {
+    setIsSidebarOpen(false);
+  };
+
   return (
     <div className="app">
-      <AppHeader />
+      <AppHeader onMenuClick={toggleSidebar} />
       <div className="container">
+        {isSidebarOpen && (
+          <div 
+            className="sidebar-overlay" 
+            onClick={closeSidebar}
+          />
+        )}
         <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
           <div className="filter-card">
             <div className="filter-section">

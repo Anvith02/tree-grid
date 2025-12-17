@@ -53,52 +53,12 @@ body {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* Header Center - Search Bar */
-.header-center {
+/* Header layout adjustments after removing search */
+.header-left {
   flex: 1;
-  max-width: 600px;
-  margin: 0 2rem;
-}
-
-.search-container {
-  position: relative;
-  width: 100%;
-  max-width: 500px;
-  margin: 0 auto;
-}
-
-.search-input {
-  width: 100%;
-  padding: 0.6rem 1rem 0.6rem 2.8rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  background-color: rgba(255, 255, 255, 0.15);
-  color: white;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.search-input::placeholder {
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.search-input:focus {
-  outline: none;
-  background-color: rgba(255, 255, 255, 0.25);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
-}
-
-.search-icon {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.8);
-  pointer-events: none;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 1.5rem;
 }
 
 /* Header Right */
@@ -163,42 +123,91 @@ body {
   margin-top: 0;
 }
 
-/* Update menu button position */
+/* Menu Button Styles */
 .menu-button {
-  display: none;
-  background: none;
+  background: rgba(255, 255, 255, 0.2);
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  padding: 0.5rem;
-  color: #4a5568;
+  padding: 0.3rem 0.6rem;
+  color: white;
   border-radius: 6px;
   transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
 }
 
 .menu-button:hover {
-  background-color: #f1f5f9;
-}
-
-@media (max-width: 992px) {
-  .header-center {
-    margin: 0 1rem;
-  }
-  
-  .search-container {
-    max-width: 300px;
-  }
+  background: rgba(255, 255, 255, 0.3);
 }
 
 @media (max-width: 768px) {
   .app-header {
     padding: 0 1rem;
     height: 60px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
   }
   
   .app-title {
     font-size: 1.2rem;
+    margin-left: 0.5rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .header-left {
+    flex: 1;
+    overflow: hidden;
+  }
+  
+  .container {
+    padding-top: 70px; /* Account for fixed header */
+  }
+  
+  .sidebar {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 999;
+    background: white;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+  }
+  
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+  }
+  
+  /* Overlay for when sidebar is open */
+  .sidebar-overlay {
     display: none;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+  }
+  
+  .sidebar-overlay.open {
+    display: block;
   }
   
   .header-center {
@@ -280,49 +289,125 @@ body {
 
 /* Mobile styles */
 @media (max-width: 768px) {
-  .menu-button {
-    display: block;
-    position: fixed;
-    top: 1rem;
-    left: 1rem;
-    z-index: 1001;
-  }
-  
-  .sidebar {
+  /* Header and Menu Button */
+  .app-header {
+    padding: 0 1rem;
+    height: 60px;
     position: fixed;
     top: 0;
-    left: -350px;
-    height: 100vh;
+    left: 0;
+    right: 0;
     z-index: 1000;
-    padding: 5rem 1.5rem 1.5rem !important;
+  }
+
+  .menu-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    top: auto;
+    left: auto;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 1001;
+  }
+
+  .menu-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  /* Sidebar */
+  .sidebar {
+    position: fixed;
+    top: 60px; /* Start below the header */
+    left: -280px;
+    width: 280px;
+    height: calc(100vh - 60px); /* Subtract header height */
+    z-index: 999;
+    background: white;
     box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease-in-out;
+    padding: 1.5rem;
+    overflow-y: auto;
   }
 
   .sidebar.open {
-    transform: translateX(350px);
+    transform: translateX(280px);
   }
 
+  /* Overlay - positioned below header */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 60px; /* Start below the header */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+  }
+
+  .sidebar-overlay.open {
+    display: block;
+  }
+
+  /* Layout Adjustments */
   .container {
-    padding-top: 4rem;
+    padding-top: 70px;
   }
 
   .main-content {
     padding: 1rem;
+    width: 100%;
+    margin-left: 0;
   }
   
   .client-grid {
-    padding: 1rem;
+    padding: 0.5rem;
   }
   
+  /* Table Responsive Styles */
   .table-container {
     max-height: calc(100vh - 200px);
     font-size: 12px;
+    overflow-x: auto;
   }
 
   .table-container th,
   .table-container td {
     font-size: 11px;
     padding: 4px 6px;
+    white-space: nowrap;
+  }
+
+  /* Header Adjustments */
+  .header-left {
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .app-title {
+    font-size: 1.2rem;
+    margin-left: 0.5rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-name {
+    display: none;
+  }
+
+  .user-initials {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
   }
 }
 
@@ -916,8 +1001,10 @@ body {
 
 .client-card {
   background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border-radius: 14px;
+  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
   border: 1px solid #f0f4f8;
   padding: 1.75rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1028,17 +1115,39 @@ body {
   }
   
   .client-card {
-    padding: 1.25rem;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 0.75rem;
+     min-height: 180px;
   }
   
   .card-header {
-    flex-direction: column;
-    gap: 0.75rem;
-    align-items: flex-start;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  
+  .card-header h3 {
+    font-size: 1.10rem;
+    margin: 0;
+    display: inline-block;
+  }
+  
+  .card-details p {
+    margin: 0.25rem 0;
+    font-size: 0.85rem;
   }
   
   .gender-badge {
-    margin-top: 0.25rem;
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+  }
+  
+  .gender-badge {
+    margin: 0;
   }
 }
 
