@@ -54,7 +54,7 @@ app = FastAPI()
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React's default port
+    allow_origins=["http://localhost:3000", "https://tree-grid.vercel.app"],  # React's default port
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
