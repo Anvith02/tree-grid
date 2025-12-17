@@ -1,8 +1,8 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, Column, String, Integer, func
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 from pydantic import BaseModel
 from typing import List, Optional
 import os
@@ -10,13 +10,19 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Database connection
+# Database connection with pooling for Neon DB
 DATABASE_URL = os.getenv("DATABASE_URL")
-engine = create_engine(DATABASE_URL)
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    pool_size=5,
+    max_overflow=10,
+    pool_recycle=300
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# Database Models
+# Database Model
 class OPT_Party(Base):
     __tablename__ = "opt_party"
     
@@ -46,19 +52,27 @@ class Client(ClientBase):
     class Config:
         orm_mode = True
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+# Create database tables (only needed once, can be removed after first run)
+# Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://tree-grid.vercel.app"],  # React's default port
+    allow_origins=["*"],  # For development, restrict in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Dependency to get DB session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 # Root endpoint
 @app.get("/")
@@ -71,25 +85,53 @@ def get_gender_list():
     return ["Male", "Female"]
 
 @app.get("/api/genders/{gender}/count")
-def get_gender_count(gender: str):
-    db = SessionLocal()
+def get_gender_count(gender: str, db: Session = Depends(get_db)):
     try:
         count = db.query(OPT_Party).filter(OPT_Party.PTY_Gender == gender).count()
         return {"count": count}
-    finally:
-        db.close()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/clients", response_model=List[Client])
-def get_clients(age_min: int = 0, age_max: int = 100):
-    db = SessionLocal()
+def get_clients(
+    age_min: int = 0, 
+    age_max: int = 100,
+    gender: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
     try:
-        clients = db.query(OPT_Party).filter(
+        query = db.query(OPT_Party).filter(
             OPT_Party.PTY_Age >= age_min,
             OPT_Party.PTY_Age <= age_max
-        ).all()
+        )
+        
+        if gender:
+            query = query.filter(OPT_Party.PTY_Gender == gender)
+            
+        clients = query.all()
         return clients
-    finally:
-        db.close()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Add a new client
+@app.post("/api/clients/", response_model=Client)
+def create_client(client: ClientCreate, db: Session = Depends(get_db)):
+    try:
+        # Generate a simple ID (you might want to use UUID in production)
+        from datetime import datetime
+        new_id = f"pty_{int(datetime.now().timestamp())}"
+        
+        db_client = OPT_Party(
+            PTY_ID=new_id,
+            **client.dict()
+        )
+        db.add(db_client)
+        db.commit()
+        db.refresh(db_client)
+        return db_client
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
